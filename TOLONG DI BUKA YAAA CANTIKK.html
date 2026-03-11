@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birthday Surprise ❤️</title>
+
+<style>
+body{margin:0;font-family:sans-serif;background:#fff;overflow:hidden;text-align:center;}
+.slide{position:absolute;width:100%;height:100vh;display:flex;justify-content:center;align-items:center;flex-direction:column;opacity:0;transform:translateX(100%);transition:all .8s ease;}
+.slide.active{opacity:1;transform:translateX(0);}
+.slide.exit{transform:translateX(-100%);}
+.cat{font-size:90px;position:relative;animation:bounce 2s infinite;}
+.paw{position:absolute;right:-15px;top:20px;font-size:40px;animation:wave 1s infinite;}
+@keyframes bounce{0%{transform:translateY(0)}50%{transform:translateY(-10px)}100%{transform:translateY(0)}}
+@keyframes wave{0%{transform:rotate(0)}50%{transform:rotate(35deg)}100%{transform:rotate(0)}}
+.board{display:grid;grid-template-columns:repeat(3,80px);gap:12px;margin-top:20px;}
+.card{width:80px;height:80px;perspective:600px;cursor:pointer;}
+.inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s;}
+.card.flip .inner{transform:rotateY(180deg);}
+.front,.back{position:absolute;width:100%;height:100%;display:flex;justify-content:center;align-items:center;font-size:32px;border-radius:10px;backface-visibility:hidden;}
+.front{background:#f0f0f0;}
+.back{transform:rotateY(180deg);background:#ffdede;}
+.cake{font-size:80px;cursor:pointer;position:relative;}
+.flame{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:10px;height:20px;background:linear-gradient(to top,#ff0,#f00);border-radius:50%;animation:flicker .25s infinite alternate;}
+@keyframes flicker{0%{transform:translateX(-50%) scale(1)}100%{transform:translateX(-50%) scale(1.2)}}
+.gift{font-size:90px;cursor:pointer;}
+.lid{display:block;transform-origin:bottom center;}
+@keyframes lidOpen{0%{transform:rotateX(0)}100%{transform:rotateX(-160deg)}}
+.photos{display:flex;flex-wrap:wrap;justify-content:center;margin-top:20px;}
+.photos img{width:220px;margin:10px;opacity:0;transform:scale(.3) rotate(-10deg);transition:all .8s cubic-bezier(.17,.67,.37,1.3);border-radius:12px;}
+.photos img.show{opacity:1;transform:scale(1) rotate(0);}
+.love{position:fixed;top:-50px;font-size:24px;animation:fallLove linear forwards;pointer-events:none;}
+@keyframes fallLove{0%{transform:translateY(-50px) scale(1);opacity:1;}100%{transform:translateY(110vh) scale(1.6);opacity:0;}}
+</style>
+</head>
+
+<body>
+<!-- SLIDE 1 -->
+<div class="slide active" id="slide1">
+<h2>Hello My Baby ❤️</h2>
+<div class="cat">🐱<div class="paw">👋</div></div>
+<p>Cari 3 hati buat buka surprise</p>
+<div id="gameBoard" class="board"></div>
+<p id="status"></p>
+</div>
+
+<!-- SLIDE 2 -->
+<div class="slide" id="slide2">
+<h1>Happy Birthday 🎉</h1>
+<div class="cake" onclick="blowCandle()">
+🎂
+<div id="flame" class="flame"></div>
+</div>
+<p>Klik kuenya untuk matikan lilin atau tiup ke mic 🎤</p>
+<button onclick="blowCandle()">Klik Kue</button>
+<button onclick="startMic()">Tiup Lilin</button>
+
+<!-- Musik mulai di slide 2 -->
+<audio id="music">
+<source src="c:\Users\Muhamad Yayang\Documents\kado.mpeg" type="audio/mpeg">
+</audio>
+</div>
+
+<!-- SLIDE 3 -->
+<div class="slide" id="slide3">
+<h2>Ini hadiah buat kamu 🎁</h2>
+<div class="gift" onclick="openGift()">
+<span class="lid">🎁</span>
+</div>
+<div class="photos" id="photos">
+<img src="c:\Users\Muhamad Yayang\Documents\yayang.jpeg">
+<img src="c:\Users\Muhamad Yayang\Documents\wwa.jpeg">
+<img src="c:\Users\Muhamad Yayang\Documents\foto1.jpeg">
+<img src="c:\Users\Muhamad Yayang\Documents\cahya.jpeg">
+</div>
+</div>
+
+<!-- SLIDE 4 -->
+<div class="slide" id="slide4">
+<h2>Happy birthday ya sayang 🎂 ❤️<br><br>Semoga panjang umur, sehat selalu, dan semua yang kamu inginkan bisa tercapai.<br><br>Terima kasih sudah selalu ada buat aku. Aku sayang kamu ❤️</h2>
+</div>
+
+<script>
+/* SLIDE */
+function nextSlide(n){
+const slides=document.querySelectorAll(".slide");
+slides.forEach(s=>{
+if(s.classList.contains("active")){s.classList.remove("active");s.classList.add("exit");}
+});
+setTimeout(()=>{slides.forEach(s=>s.classList.remove("exit"));document.getElementById("slide"+n).classList.add("active");},400);
+}
+
+/* GAME */
+const symbols=["❤️","💣","🌸","🌸","❤️","🌸","💣","🌸","❤️"];
+const board=document.getElementById("gameBoard");
+let opened=[], hearts=0;
+symbols.sort(()=>Math.random()-0.5);
+symbols.forEach(sym=>{
+const card=document.createElement("div");
+card.className="card";
+const inner=document.createElement("div");
+inner.className="inner";
+const front=document.createElement("div");
+front.className="front";
+front.innerHTML="?";
+const back=document.createElement("div");
+back.className="back";
+back.innerHTML=sym;
+inner.appendChild(front);
+inner.appendChild(back);
+card.appendChild(inner);
+card.onclick=function(){
+if(card.classList.contains("flip")) return;
+card.classList.add("flip");
+opened.push({card,symbol:sym});
+if(sym==="❤️") hearts++;
+if(opened.length===3){
+setTimeout(()=>{
+if(hearts===3){document.getElementById("status").innerHTML="❤️❤️❤️ berhasil!"; nextSlide(2);}
+else{document.getElementById("status").innerHTML="💣 zonk coba lagi";opened.forEach(o=>o.card.classList.remove("flip"));}
+opened=[]; hearts=0;
+},800);
+}
+};
+board.appendChild(card);
+});
+
+/* MIC BLOW */
+async function startMic(){
+try{
+const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+const audioContext = new AudioContext();
+const mic = audioContext.createMediaStreamSource(stream);
+const analyser = audioContext.createAnalyser();
+analyser.fftSize = 512;
+mic.connect(analyser);
+const data = new Uint8Array(analyser.frequencyBinCount);
+function detect(){
+analyser.getByteFrequencyData(data);
+let volume = data.reduce((a,b)=>a+b)/data.length;
+if(volume > 35){
+document.getElementById("flame").style.display="none";
+playMusic();
+setTimeout(()=>{ nextSlide(3); },700);
+stream.getTracks().forEach(track=>track.stop());
+}
+requestAnimationFrame(detect);
+}
+detect();
+}catch{alert("Izinkan microphone dulu 🎤");}
+}
+
+/* CLICK KUE */
+function blowCandle(){
+document.getElementById("flame").style.display="none";
+playMusic();
+setTimeout(()=>{ nextSlide(3); },700);
+}
+
+/* PLAY MUSIC */
+function playMusic(){
+const music=document.getElementById("music");
+music.loop=true;
+music.play().catch(()=>{});
+}
+
+/* GIFT */
+function openGift(){
+const lid=document.querySelector(".lid");
+lid.style.animation="lidOpen .8s forwards";
+setTimeout(()=>{
+lid.style.display="none";
+const photos=document.querySelectorAll("#photos img");
+photos.forEach((img,i)=>{setTimeout(()=>{img.classList.add("show");},i*500);});
+launchLove();
+setTimeout(()=>{ nextSlide(4);},2500);
+},800);
+}
+
+/* LOVE RAIN */
+function launchLove(){
+function createLove(){
+const l=document.createElement("div");
+l.className="love";
+l.innerHTML="❤️";
+l.style.left=Math.random()*100+"vw";
+l.style.fontSize=(20+Math.random()*30)+"px";
+l.style.animationDuration=(3+Math.random()*3)+"s";
+document.body.appendChild(l);
+setTimeout(()=>{l.remove()},6000);
+}
+setInterval(createLove,120);
+}
+</script>
+
+</body>
+</html>
